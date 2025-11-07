@@ -299,3 +299,271 @@ move_list	dcb.b $40,0		;$000-$07e
 		dc.b -1			;$1fc
 		dc.b 0			;$1fe
 
+;-------------- Disassemble copper-list ------------------------
+
+cmd_copd	bsr	evaluate
+		bmi.b	.use_current
+		move.l	d0,a4
+		bra.b	.start
+
+.use_current	move.l	custom+$80,a4	;use current copper1 address
+
+.start		and.w	#$fffe,a4	;ensure even address
+		move.l	a4,a5		;save start address
+
+		moveq	#0,d5		;line counter
+.loop		cmp.w	#18,d5		;max lines per screen
+		bge.b	.done
+
+		lea.l	output,a0
+		move.l	a5,d0
+		moveq	#6,d1
+		bsr	print_hex
+		lea.l	.colon(pc),a0
+		bsr	print
+
+		move.l	a5,a0
+		bsr	reloc_pic
+		move.w	(a4)+,d2	;d2 = word1 (register/position)
+		move.w	(a4)+,d3	;d3 = word2 (value/mask)
+
+		;print hex values
+		lea.l	output,a0
+		move.w	d2,d0
+		moveq	#4,d1
+		bsr	print_hex
+		lea.l	.space(pc),a0
+		bsr	print
+
+		lea.l	output,a0
+		move.w	d3,d0
+		moveq	#4,d1
+		bsr	print_hex
+		lea.l	.space2(pc),a0
+		bsr	print
+
+		;decode instruction
+		move.w	d2,d0
+		btst	#0,d0		;check if WAIT/SKIP or MOVE
+		bne.b	.wait_skip
+
+		;MOVE instruction
+		lea.l	.move_txt(pc),a0
+		bsr	print
+		lea.l	output,a0
+		move.w	d2,d0
+		and.w	#$1fe,d0
+		moveq	#3,d1
+		bsr	print_hex
+		lea.l	.comma(pc),a0
+		bsr	print
+
+		lea.l	output,a0
+		move.w	d3,d0
+		moveq	#4,d1
+		bsr	print_hex
+
+		;print register name if known
+		move.w	d2,d0
+		bsr	.print_regname
+		bsr	print_cr
+		bra.b	.next
+
+.wait_skip	cmp.w	#$ffff,d2
+		bne.b	.not_end
+
+		;END instruction
+		lea.l	.end_txt(pc),a0
+		bsr	print
+		bsr	print_cr
+		addq.w	#1,d5
+		bra.b	.done
+
+.not_end	btst	#15,d2
+		beq.b	.is_wait
+
+		;SKIP instruction
+		lea.l	.skip_txt(pc),a0
+		bsr	print
+		bra.b	.wait_common
+
+.is_wait	;WAIT instruction
+		lea.l	.wait_txt(pc),a0
+		bsr	print
+
+.wait_common	move.w	d2,d0
+		lsr.w	#8,d0
+		and.w	#$ff,d0
+		lea.l	output,a0
+		moveq	#2,d1
+		bsr	print_hex
+		lea.l	.comma(pc),a0
+		bsr	print
+
+		move.w	d2,d0
+		lsr.w	#1,d0
+		and.w	#$7f,d0
+		lea.l	output,a0
+		moveq	#2,d1
+		bsr	print_hex
+
+		;print mask
+		lea.l	.mask_txt(pc),a0
+		bsr	print
+		lea.l	output,a0
+		move.w	d3,d0
+		moveq	#4,d1
+		bsr	print_hex
+		bsr	print_cr
+
+.next		addq.l	#4,a5
+		addq.w	#1,d5
+		bra.w	.loop
+
+.done		bra.w	end_command
+
+;print register name for custom register offsets
+.print_regname	movem.l	d0-d1/a0,-(a7)
+		and.w	#$1fe,d0
+		lea.l	.reg_names(pc),a0
+		moveq	#0,d1
+.find_reg	tst.b	(a0)
+		beq.b	.reg_done
+		cmp.w	(a0),d0
+		beq.b	.found_reg
+		addq.l	#2,a0
+.skip_name	tst.b	(a0)+
+		bne.b	.skip_name
+		bra.b	.find_reg
+
+.found_reg	addq.l	#2,a0
+		lea.l	.space3(pc),a1
+		move.l	a1,-(a7)
+		bsr	print
+		move.l	(a7)+,a0
+		bsr	print
+		move.l	a0,-(a7)
+		bsr	print
+		move.l	(a7)+,a0
+		bsr	print
+
+.reg_done	movem.l	(a7)+,d0-d1/a0
+		rts
+
+;table of register offsets and names
+.reg_names	dc.w $080
+		dc.b "COP1LC",0
+		dc.w $084
+		dc.b "COP2LC",0
+		dc.w $088
+		dc.b "COPJMP1",0
+		dc.w $08a
+		dc.b "COPJMP2",0
+		dc.w $08e
+		dc.b "DIWSTRT",0
+		dc.w $090
+		dc.b "DIWSTOP",0
+		dc.w $092
+		dc.b "DDFSTRT",0
+		dc.w $094
+		dc.b "DDFSTOP",0
+		dc.w $096
+		dc.b "DMACON",0
+		dc.w $09a
+		dc.b "INTENA",0
+		dc.w $09c
+		dc.b "INTREQ",0
+		dc.w $100
+		dc.b "BPLCON0",0
+		dc.w $102
+		dc.b "BPLCON1",0
+		dc.w $104
+		dc.b "BPLCON2",0
+		dc.w $106
+		dc.b "BPLCON3",0
+		dc.w $108
+		dc.b "BPL1MOD",0
+		dc.w $10a
+		dc.b "BPL2MOD",0
+		dc.w $0e0
+		dc.b "BPL1PTH",0
+		dc.w $0e2
+		dc.b "BPL1PTL",0
+		dc.w $0e4
+		dc.b "BPL2PTH",0
+		dc.w $0e6
+		dc.b "BPL2PTL",0
+		dc.w $0e8
+		dc.b "BPL3PTH",0
+		dc.w $0ea
+		dc.b "BPL3PTL",0
+		dc.w $0ec
+		dc.b "BPL4PTH",0
+		dc.w $0ee
+		dc.b "BPL4PTL",0
+		dc.w $0f0
+		dc.b "BPL5PTH",0
+		dc.w $0f2
+		dc.b "BPL5PTL",0
+		dc.w $0f4
+		dc.b "BPL6PTH",0
+		dc.w $0f6
+		dc.b "BPL6PTL",0
+		dc.w $0f8
+		dc.b "BPL7PTH",0
+		dc.w $0fa
+		dc.b "BPL7PTL",0
+		dc.w $0fc
+		dc.b "BPL8PTH",0
+		dc.w $0fe
+		dc.b "BPL8PTL",0
+		dc.w $120
+		dc.b "SPR0PTH",0
+		dc.w $122
+		dc.b "SPR0PTL",0
+		dc.w $124
+		dc.b "SPR1PTH",0
+		dc.w $126
+		dc.b "SPR1PTL",0
+		dc.w $128
+		dc.b "SPR2PTH",0
+		dc.w $12a
+		dc.b "SPR2PTL",0
+		dc.w $12c
+		dc.b "SPR3PTH",0
+		dc.w $12e
+		dc.b "SPR3PTL",0
+		dc.w $130
+		dc.b "SPR4PTH",0
+		dc.w $132
+		dc.b "SPR4PTL",0
+		dc.w $134
+		dc.b "SPR5PTH",0
+		dc.w $136
+		dc.b "SPR5PTL",0
+		dc.w $138
+		dc.b "SPR6PTH",0
+		dc.w $13a
+		dc.b "SPR6PTL",0
+		dc.w $13c
+		dc.b "SPR7PTH",0
+		dc.w $13e
+		dc.b "SPR7PTL",0
+		dc.w $180
+		dc.b "COLOR00",0
+		dc.b 0		;end marker
+		even
+
+.colon		dc.b ": ",0
+.space		dc.b " ",0
+.space2		dc.b "  ",0
+.space3		dc.b " (",0
+.comma		dc.b ",",0
+.move_txt	dc.b "MOVE.W $",0
+.wait_txt	dc.b "WAIT ",0
+.skip_txt	dc.b "SKIP ",0
+.end_txt	dc.b "END",0
+.mask_txt	dc.b ", mask=$",0
+.close_txt	dc.b ")",0
+		even
+
