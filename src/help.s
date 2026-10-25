@@ -36,6 +36,7 @@ help_txt
  dc.b "FS   strt end str  : find string (not casesensitive)",$a
  dc.b "FI   strt end str  : find instruction",$a
  dc.b "COP  strt end      : find copper-list",$a
+ dc.b "COPD [addr]        : disassemble copper-list (default: COP1LC)",$a
  dc.b "P    picno         : gfx-ripper (picno=0,1,2,..) (first use COP)",$a
  dc.b $a
  dc.b "B   address        : set/remove an illegal breakpoint",$a
