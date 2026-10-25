@@ -1711,7 +1711,17 @@ no_print_trace
 		tst.b	(a3)
 		bpl.b	.noIDEirq
 		move.l	ide_base,a3
-		jsr	wait_irq		;remove IRQ request from IDE
+		tst.b	config_A1200
+		bne.b	.wait1200
+		; A4000: the TST.B above has already read (and so cleared) the
+		; latched interrupt at $DD3020.  wait_irq would wait for it to be
+		; set again, which never happens once the drive's INTRQ has been
+		; acknowledged.  Acknowledge the drive by reading its status, as
+		; the init code does.
+		move.w	ide_status,d0
+		move.b	(a3,d0.w),d0
+		bra.b	.noIDEirq
+.wait1200	jsr	wait_irq		;remove IRQ request from IDE
 .noIDEirq
 		bsr	print_status
 
