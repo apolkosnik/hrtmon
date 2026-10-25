@@ -1711,7 +1711,17 @@ no_print_trace
 		tst.b	(a3)
 		bpl.b	.noIDEirq
 		move.l	ide_base,a3
-		jsr	wait_irq		;remove IRQ request from IDE
+		tst.b	config_A1200
+		bne.b	.wait1200
+		; A4000: the TST.B above has already read (and so cleared) the
+		; latched interrupt at $DD3020.  wait_irq would wait for it to be
+		; set again, which never happens once the drive's INTRQ has been
+		; acknowledged.  Acknowledge the drive by reading its status, as
+		; the init code does.
+		move.w	ide_status,d0
+		move.b	(a3,d0.w),d0
+		bra.b	.noIDEirq
+.wait1200	jsr	wait_irq		;remove IRQ request from IDE
 .noIDEirq
 		bsr	print_status
 
@@ -12346,21 +12356,21 @@ init_regBMON	lea.l	regsBMON,a1
 
 ascII		dc.b "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
 		dc.b "0123456789+",'"'
-		dc.b "*ç%&/()=?'!$#-,;:[]<>@.éàèöäü",$5c,"|§°_¹²{} "
+		dc.b "*Ã§%&/()=?'!$#-,;:[]<>@.Ã©Ã Ã¨Ã¶Ã¤Ã¼",$5c,"|Â§Â°_Â¹Â²{} "
 end_ascII
 
 ;--- special ascII -------
-; '¹' = continous line
-; '²' = small dot
+; 'Â¹' = continous line
+; 'Â²' = small dot
 
 ;----------------------------------------------------------------------------
 
-ascIIx		dcb.b $20,"²"
-		dc.b ' !"£$%&',"'()*+,-./0123456789:;<=>?@"
-		dc.b "ABCDEFGHIJKLMNOPQRSTUVWXYZ[",$5c,"]^_²"
+ascIIx		dcb.b $20,"Â²"
+		dc.b ' !"Â£$%&',"'()*+,-./0123456789:;<=>?@"
+		dc.b "ABCDEFGHIJKLMNOPQRSTUVWXYZ[",$5c,"]^_Â²"
 		dc.b "abcdefghijklmnopqrstuvwxyz"
-		dc.b "{|}²çüé²äà²ç²²è"
-		dcb.b 256,"²"
+		dc.b "{|}Â²Ã§Ã¼Ã©Â²Ã¤Ã Â²Ã§Â²Â²Ã¨"
+		dcb.b 256,"Â²"
 		even
 
 hex_list	dc.b "0123456789ABCDEF"
@@ -12424,8 +12434,8 @@ topaz2		incbin "Topaz3.raw"
 
 ascII_mac	macro
 		dcb.b 80*(MAX_SCREEN-3),' '		;fill with spc.
-		dc.b "¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹"
-		dc.b "¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹"
+		dc.b "Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹"
+		dc.b "Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹Â¹"
 		dc.b "HRTmon V"
 		version
 		dc.b " by Alain Malek and others "
@@ -12559,7 +12569,7 @@ _exceptionnames
 
 *****************************************************************************
 ;----------------------------------------
-; Berechnet String-Adresse über Zuordungstabelle
+; Berechnet String-Adresse Ã¼ber Zuordungstabelle
 ; input :	D0 = WORD   value
 ;		A0 = STRUCT Zuordnungstabelle
 ; output :	D0 = CPTR   string or NULL
