@@ -346,7 +346,7 @@ cmd_copd	bsr	evaluate
 
 		;MOVE: the register (first word, bits 8-1) and its value
 		lea.l	.t_move(pc),a1
-		bsr.b	.str
+		bsr	.str
 		move.w	d3,d0
 		moveq	#4,d1
 		bsr	conv_hex
@@ -367,7 +367,7 @@ cmd_copd	bsr	evaluate
 		cmp.w	#$fffe,d3
 		bne.b	.ws
 		lea.l	.t_end(pc),a1
-		bsr.b	.str
+		bsr	.str
 		moveq	#0,d7			;the last line
 		bra.b	.eol
 
@@ -375,21 +375,21 @@ cmd_copd	bsr	evaluate
 		btst	#0,d3
 		beq.b	.wait
 		lea.l	.t_skip(pc),a1
-.wait		bsr.b	.str
+.wait		bsr	.str
 		move.w	d2,d0			;VP: first word bits 15-8
 		lsr.w	#8,d0
 		moveq	#2,d1
 		bsr	conv_hex
 		addq.l	#2,a0
 		lea.l	.t_hp(pc),a1
-		bsr.b	.str
+		bsr	.str
 		move.w	d2,d0			;HP: first word bits 7-1
 		and.w	#$fe,d0
 		moveq	#2,d1
 		bsr	conv_hex
 		addq.l	#2,a0
 		lea.l	.t_mask(pc),a1
-		bsr.b	.str
+		bsr	.str
 		move.w	d3,d0			;VE/HE: second word bits 14-1
 		and.w	#$7ffe,d0
 		moveq	#4,d1
@@ -398,7 +398,7 @@ cmd_copd	bsr	evaluate
 		btst	#15,d3			;BFD 0: waits for the blitter too
 		bne.b	.eol
 		lea.l	.t_bfd(pc),a1
-		bsr.b	.str
+		bsr	.str
 
 .eol		move.b	#$a,(a0)+
 		sf	(a0)
