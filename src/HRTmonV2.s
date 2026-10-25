@@ -12359,21 +12359,21 @@ init_regBMON	lea.l	regsBMON,a1
 
 ascII		dc.b "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
 		dc.b "0123456789+",'"'
-		dc.b "*ï¿½%&/()=?'!$#-,;:[]<>@.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",$5c,"|ï¿½ï¿½_ï¿½ï¿½{} "
+		dc.b "*ç%&/()=?'!$#-,;:[]<>@.éàèöäü",$5c,"|§°_¹²{} "
 end_ascII
 
 ;--- special ascII -------
-; 'ï¿½' = continous line
-; 'ï¿½' = small dot
+; '¹' = continous line
+; '²' = small dot
 
 ;----------------------------------------------------------------------------
 
-ascIIx		dcb.b $20,"ï¿½"
-		dc.b ' !"ï¿½$%&',"'()*+,-./0123456789:;<=>?@"
-		dc.b "ABCDEFGHIJKLMNOPQRSTUVWXYZ[",$5c,"]^_ï¿½"
+ascIIx		dcb.b $20,"²"
+		dc.b ' !"£$%&',"'()*+,-./0123456789:;<=>?@"
+		dc.b "ABCDEFGHIJKLMNOPQRSTUVWXYZ[",$5c,"]^_²"
 		dc.b "abcdefghijklmnopqrstuvwxyz"
-		dc.b "{|}ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç²²ï¿½"
-		dcb.b 256,"ï¿½"
+		dc.b "{|}²çüé²äà²ç²²è"
+		dcb.b 256,"²"
 		even
 
 hex_list	dc.b "0123456789ABCDEF"
@@ -12437,8 +12437,8 @@ topaz2		incbin "Topaz3.raw"
 
 ascII_mac	macro
 		dcb.b 80*(MAX_SCREEN-3),' '		;fill with spc.
-		dc.b "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
-		dc.b "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
+		dc.b "¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹"
+		dc.b "¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹"
 		dc.b "HRTmon V"
 		version
 		dc.b " by Alain Malek and others "
@@ -12572,7 +12572,7 @@ _exceptionnames
 
 *****************************************************************************
 ;----------------------------------------
-; Berechnet String-Adresse ï¿½ber Zuordungstabelle
+; Berechnet String-Adresse über Zuordungstabelle
 ; input :	D0 = WORD   value
 ;		A0 = STRUCT Zuordnungstabelle
 ; output :	D0 = CPTR   string or NULL
