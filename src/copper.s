@@ -308,7 +308,9 @@ cmd_copd	bsr	evaluate
 
 .use_current	move.l	custom+$80,a4	;use current copper1 address
 
-.start		and.w	#$fffe,a4	;ensure even address
+.start		move.l	a4,d0		;ensure even address (no AND to An)
+		and.b	#$fe,d0
+		move.l	d0,a4
 		move.l	a4,a5		;save start address
 
 		moveq	#0,d5		;line counter
